@@ -38,16 +38,20 @@
   :init-value nil
   :global nil
   (if hide-mode-line-mode
-      (progn
-        (add-hook 'after-change-major-mode-hook #'hide-mode-line-mode nil t)
-        (unless hide-mode-line--old-format
-          (setq hide-mode-line--old-format mode-line-format))
+
+      ;; Do not overwrite original mode line
+      (unless hide-mode-line--old-format
+        (add-hook 'after-change-major-mode-hook #'hide-mode-line-reset nil t)
+        (setq-local hide-mode-line--old-format mode-line-format)
         (setq mode-line-format hide-mode-line-format))
-    (remove-hook 'after-change-major-mode-hook #'hide-mode-line-mode t)
-    (setq mode-line-format hide-mode-line--old-format
-          hide-mode-line--old-format nil))
-  (when (called-interactively-p 'any)
-    (redraw-display)))
+    ;; else
+    ;; check old-format to prevent setting mode-line-format to nil
+    (when hide-mode-line--old-format
+      (remove-hook 'after-change-major-mode-hook #'hide-mode-line-reset t)
+      (setq mode-line-format hide-mode-line--old-format)
+      (setq-local hide-mode-line--old-format nil)))
+  (force-mode-line-update))
+
 
 ;; Ensure major-mode or theme changes don't overwrite these variables
 (put 'hide-mode-line--old-format 'permanent-local t)
@@ -64,11 +68,6 @@
 Unless in `fundamental-mode' or `hide-mode-line-excluded-modes'."
   (unless (memq major-mode hide-mode-line-excluded-modes)
     (hide-mode-line-mode +1)))
-
-;;;###autoload
-(defun turn-off-hide-mode-line-mode ()
-  "Turn off `hide-mode-line-mode'."
-  (hide-mode-line-mode -1))
 
 (provide 'hide-mode-line)
 ;;; hide-mode-line.el ends here
