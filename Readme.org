@@ -1,0 +1,48 @@
+* Mask-mode-line
+
+Provides ~mask-mode-line-mode~. A minor mode that masks (or hides) the mode-line
+in your current buffer. It can be used to toggle an alternative mode-line...
+
+It's based on [[https://github.com/hlissner/emacs-hide-mode-line][~hide-mode-line-mode~]].
+
+* Installation
+
+* Usage
+
+Add ~mask-mode-line-mode~ to hooks where you don't want a mode-line, like the
+completion-list or org todo/agenda-popup windows, or neotree.
+
+#+begin_src emacs-lisp
+  (add-hook 'completion-list-mode-hook #'mask-mode-line-mode)
+  (add-hook 'neotree-mode-hook #'mask-mode-line-mode)
+#+end_src
+
+Or replace the mode-line in specific windows:
+
+#+begin_src emacs-lisp
+  (let ((mask-mode-line-format '("%b")))
+    (mask-mode-line-mode +1))
+
+  (setq-local mask-mode-line-format '("%b"))
+  (mask-mode-line-mode +1)
+#+end_src
+
+Also can change the face of the ~mode-line~ setting ~mask-mode-line-face~ with a
+face.
+
+#+begin_src emacs-lisp
+  (setq mask-mode-line-face 'mode-line-minor-mode-face)
+#+end_src
+
+Or with the list of attributes ([see Manual][attributes-doc]) that are passed to [`face-remap-add-relative`][remap-doc]
+
+#+begin_src emacs-lisp
+  (setq mask-mode-line-face (list :box nil :background "yellow" :height 0.25))
+#+end_src
+Or
+#+begin_src emacs-lisp
+  (setq mask-mode-line-face '(:box nil :background "blue" :height 0.1))
+#+end_src
+
+[attributes-doc]: https://www.gnu.org/software/emacs/manual/html_node/elisp/Face-Attributes.html
+[remap-doc]: https://www.gnu.org/software/emacs/manual/html_node/elisp/Face-Remapping.html
