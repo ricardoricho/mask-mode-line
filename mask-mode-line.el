@@ -1,6 +1,7 @@
-;;; hide-mode-line.el --- minor mode that hides/masks your modeline -*- lexical-binding: t; -*-
+;;; mask-mode-line.el --- minor mode that masks/hide your modeline -*- lexical-binding: t; -*-
 ;;
 ;; Copyright (C) 2018-2021 Henrik Lissner
+;; Copyright (C) 2023 Ricardo Arredondo
 ;;
 ;; Author: Ricardo Arredondo <http://github/ricardoricho>
 ;; Maintainer: Ricardo Arredondo <ricardo.richo@gmail.com>
@@ -23,11 +24,21 @@
   :type 'string
   :group 'mask-mode-line)
 
-(defcustom mask-mode-line-face
-  (mask-mode-line--guess-face)
+(defcustom mask-mode-line-face nil
   "Remap to this face when `mask-mode-line-mode' is active."
   :type 'list
   :group 'mask-mode-line)
+
+(defcustom mask-mode-line-excluded-modes '(fundamental-mode)
+  "List of major modes where `global-mask-mode-line-mode' won't affect."
+  :type 'list
+  :group 'mask-mode-line)
+
+(defvar-local mask-mode-line--cookies nil
+  "Storage for cookies when remaping mode-line and mode-line-inactive faces.")
+
+(defvar-local mask-mode-line--old-format nil
+  "Storage for the old `mode-line-format'.")
 
 (defun mask-mode-line--guess-face ()
   "Set default face to hide mode-line."
@@ -36,27 +47,18 @@
      (list :box nil :foreground foreground
            :background background :height 0.5)))
 
-(defvar-local mask-mode-line--cookies nil
-  "Storage for cookies when remaping mode-line and mode-line-inactive faces.")
-
-(defcustom mask-mode-line-excluded-modes '(fundamental-mode)
-  "List of major modes where `global-mask-mode-line-mode' won't affect."
-  :type 'list
-  :group 'mask-mode-line)
-
-(defvar-local mask-mode-line--old-format nil
-  "Storage for the old `mode-line-format', so it can be restored when
-`mask-mode-line-mode' is disabled.")
-
 (defun mask-mode-line--mask-mode-line ()
-  "Mask mode-line.
-Use `mask-mode-line-format' and `mask-mode-line-face'."
-  (setq-local mask-mode-line--old-format mode-line-format)
-  (setq-local mask-mode-line--cookies
-              (list (face-remap-add-relative 'mode-line mask-mode-line-face)
-                    (face-remap-add-relative 'mode-line-inactive mask-mode-line-face)))
-  (setq mode-line-format mask-mode-line-format)
-  (force-mode-line-update))
+  "Apply `mask-mode-line-format' and `mask-mode-line-face' to mode-line."
+  (let ((new-mask-mode-line-face (or mask-mode-line-face
+                                     (mask-mode-line--guess-face))))
+    (setq-local mask-mode-line--old-format mode-line-format)
+    (setq-local mask-mode-line--cookies
+                (list (face-remap-add-relative 'mode-line
+                                               new-mask-mode-line-face)
+                      (face-remap-add-relative 'mode-line-inactive
+                                               new-mask-mode-line-face)))
+    (setq mode-line-format mask-mode-line-format)
+    (force-mode-line-update)))
 
 (defun mask-mode-line--unmask-mode-line ()
   "Unmask mode-line.  Revert to original mode-line."
@@ -72,19 +74,17 @@ Use `mask-mode-line-format' and `mask-mode-line-face'."
   :init-value nil
   :global nil
   (if mask-mode-line-mode
-
       ;; Do not overwrite original mode line
       (unless mask-mode-line--old-format
         (add-hook 'after-change-major-mode-hook
-                  #'mask-mode-line-reset nil t)
+                  #'mask-mode-line-mode nil t)
         (mask-mode-line--mask-mode-line))
     ;; else
     ;; check old-format to prevent setting mode-line-format to nil
     (when mask-mode-line--old-format
       (remove-hook 'after-change-major-mode-hook
-                   #'mask-mode-line-reset t)
+                   #'mask-mode-line--mask-mode-line t)
       (mask-mode-line--unmask-mode-line))))
-
 
 ;; Ensure major-mode or theme changes don't overwrite these variables
 (put 'mask-mode-line--old-format 'permanent-local t)
