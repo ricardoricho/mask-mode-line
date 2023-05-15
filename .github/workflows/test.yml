@@ -14,13 +14,13 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest]
         emacs-version:
-          - 26
-          - 27
-          - 28
+          - 26.3
+          - 27.2
+          - 28.2
     steps:
       - uses: purcell/setup-emacs@master
         with:
-          version: ${{ matix.emacs-version }}
+          version: ${{ matrix.emacs-version }}
       - name: Run tests
         run:
           make tests
