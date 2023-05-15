@@ -9,14 +9,18 @@ on:
 
 jobs:
   test:
-    runs-on: silex/emacs-${{ matrix.emacs-version }}-apline-ci
+    runs-on: ${{ matrix.os }}
     strategy:
-      fail-fast: false
       matrix:
+        os: [ubuntu-latest, macos-latest]
         emacs-version:
           - 26
           - 27
           - 28
-    - name: Run tests
-      run:
-        make tests
+    steps:
+      - uses: purcell/setup-emacs@master
+        with:
+          version: ${{ matix.emacs-version }}
+      - name: Run tests
+        run:
+          make tests
