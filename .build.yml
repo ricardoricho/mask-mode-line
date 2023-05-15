@@ -1,0 +1,11 @@
+image: alpine/edge
+packages:
+  - emacs
+  - git
+  - make
+sources:
+  - https://git.sr.ht/~richo/mask-mode-line
+tasks:
+  - tests: |
+      cd mask-mode-line
+      make tests
