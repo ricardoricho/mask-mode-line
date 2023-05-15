@@ -1,0 +1,22 @@
+name: emacs-tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: silex/emacs-${{ matrix.emacs-version }}-apline-ci
+    strategy:
+      fail-fast: false
+      matrix:
+        emacs-version:
+          - 26
+          - 27
+          - 28
+    - name: Run tests
+      run:
+        make tests
