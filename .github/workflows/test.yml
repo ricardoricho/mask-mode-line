@@ -1,0 +1,28 @@
+name: emacs-tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        emacs-version:
+          - 29.4
+          - 30.2
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Setup emacs
+        uses: purcell/setup-emacs@master
+        with:
+          version: ${{ matrix.emacs-version }}
+      - name: Run tests
+        run:
+          make tests
